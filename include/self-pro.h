@@ -1,0 +1,10 @@
+void run_dir_speed(double degree,double speed);
+int chasiss();
+void run_dir_speed_dis(double degree,double speed,double dis,bool st=true);
+void run_dir_speed_time(double degree,double speed,double time,bool st=true);
+void turnto(int degree);
+void move(int a,int c);
+void armslowto();void delay(double t);
+void beam(int st);
+int autorun();
+int xianwei();
