@@ -143,58 +143,60 @@ int autorun()
       int mid = 20;
       Brain.Screen.print("%d", mid);
       run_dir_speed_dis(87, 40, 4, false);
-      run_dir_speed_dis(87, 70, 8.7, true);//推黄
+      run_dir_speed_dis(87, 70, 9, true);//推黄
       wait(0.2,seconds);
-      run_dir_speed_dis(87, -30, 1.9, true);//退一点
+      while(Optical9.brightness()>mid)
+      {
+        run_dir_speed(87, -30);
+      }
+      run_dir_speed_dis(87, -40, 1, true);//退一点
       turnto(165);
       run_dir_speed_time(165, -70, 1, false);
       run_dir_speed_time(165, 60, 0.2, false);
       run_dir_speed_time(165, -60, 0.3, false);
-      wait(0.1, seconds);
       Pneumatic1.retract(cylinder2);
       beam(1);
       beam(1);
       wait(0.2, seconds);
       BrainInertial.setRotation(0, degrees);
       run_dir_speed_dis(0, 80, 6, false);
-      run_dir_speed_time(0, 60, 0.7, true);//预装对位
+      //run_dir_speed_time(0, 60, 0.8, true);//预装对位
+      move(60,60);
+      wait(1.1,seconds);
       int predeg = BrainInertial.rotation(degrees);
-      run_dir_speed_dis(predeg, -40, 0.6, true);
+      Brain.Screen.newLine();
+      Brain.Screen.print("data %d",predeg);
+      run_dir_speed_dis(predeg, -40, 1, true);
       claw = 0;
       wait(0.1, seconds);
       claw = 1;
-      wait(0.2, seconds);
-      arm.setVelocity(90, percent);
+      wait(0.3, seconds);
+      arm.setVelocity(100, percent);
       arm.spinToPosition(450, degrees, false);
-      wait(0.5, seconds);
-      run_dir_speed_time(predeg, 50, 0.4, false);
+      wait(0.4, seconds);
+      run_dir_speed_time(predeg, 50, 0.3, false);
       beam(0);
       beam(0);
-      run_dir_speed_time(predeg, 50, 0.2, false);//预装
-      run_dir_speed_dis(predeg, -50, 3.5, false);
+      run_dir_speed_time(predeg, 55, 0.3, false);//预装
+      run_dir_speed_dis(predeg, -55, 3.5, false);
       beam(1);
       beam(1);
       run_dir_speed_dis(predeg, -40, 1, true);
-      UPDOWN.spinToPosition(55, degrees, false);
+      UPDOWN.spinToPosition(60, degrees, false);
       wait(0.2, seconds);
       arm.spinToPosition(540, degrees, false);
-      wait(0.4, seconds);
+      wait(0.3, seconds);
       claw = 0;//反扣一层
       claw = 0;
-      wait(0.3, seconds);
+      wait(0.2, seconds);
       arm.spinToPosition(0, degrees, false);
       turnto(-90);
       arm.setStopping(brake);
       claw = 1;
       wait(0.2,seconds);
-      if (predeg > 0)
-      {
-        run_dir_speed_dis(-90, 60, 7, true);
-      }
-      else
-      {
-        run_dir_speed_dis(-90, 60, 8.2, true);
-      }
+      run_dir_speed_dis(-90, 70, 8-9*sin(predeg*M_PI/180), true);
+      Brain.Screen.newLine();
+      Brain.Screen.print("data %f",11.5*sin(predeg*M_PI/180));
       arm.spin(forward, 90, percent);
       while(arm.position(degrees)<300)
       {
@@ -208,14 +210,7 @@ int autorun()
       arm.setVelocity(90, percent);
       arm.spinToPosition(0, degrees, false);
       UPDOWN.spinToPosition(700, degrees, false);
-      if (predeg > 0)
-      {
-        run_dir_speed_dis(-90, -60, 5.9, true);
-      }
-      else
-      {
-        run_dir_speed_dis(-90, -60, 5.9, true);
-      }
+      run_dir_speed_dis(-90, -70, 7.5, true);
       turnto(-180);//转向高桩
       run_dir_speed_time(-180, -60, 1.4, false);
       Optical9.setLight(ledState::on);
@@ -225,9 +220,9 @@ int autorun()
       beam(0);//释放高桩
       while (Optical9.brightness() > mid)
       {
-        run_dir_speed(-180, 40);
+        run_dir_speed(-180, 30);
       }
-      run_dir_speed_dis(-180, 40, 2, false);
+      run_dir_speed_dis(-180, 60, 1.7, false);
       UPDOWN.spinToPosition(300, degrees, false);
       turnto(-90);
       leftM.setPosition(0, degrees);
@@ -239,16 +234,16 @@ int autorun()
       claw = 1;
       if (leftM.position(degrees) < 350)
       {
-        run_dir_speed_dis(-88, 60, 7.5, false);
+        run_dir_speed_dis(-88, 70, 7.5, false);
       }
       else
       {
-        run_dir_speed_dis(-88, 60, 1.9, false);
+        run_dir_speed_dis(-88, 70, 1.9, false);
       }
       run_dir_speed_dis(-60, 50, 3.5, false);
       run_dir_speed_dis(-60, 80, 13.5, false);//拿俩黄
       run_dir_speed_time(-90, 80, 0.8, true);
-      run_dir_speed_dis(-90, -60, 1.2, true);
+      run_dir_speed_dis(-90, -70, 1.2, true);
       leftM.setVelocity(40, percent);
       leftM.spinFor(forward, -220, degrees, true);
       wait(0.1, seconds);
@@ -267,29 +262,29 @@ int autorun()
       {
         wait(2, msec);
       }
-      run_dir_speed_dis(-181, -30, 2.5, false);
+      run_dir_speed_dis(-181, -60, 2.5, false);
       while (Optical9.brightness() > mid)
       {
-        run_dir_speed(-181, -40);
+        run_dir_speed(-181, -30);
       }
-      run_dir_speed_dis(-181, -60, 2, false);
-      run_dir_speed_dis(-181, -60, 2.2, false);
+      run_dir_speed_dis(-181, -70, 2, false);
+      run_dir_speed_dis(-181, -70, 2.2, false);
       arm.spinToPosition(400, degrees, false);
-      run_dir_speed_dis(-181, -60, 8.4, false);
+      run_dir_speed_dis(-181, -70, 8.4, false);
       UPDOWN.spinToPosition(0, degrees, false);
       while (Optical9.brightness() > mid)
       {
-        run_dir_speed(-181, -35);
+        run_dir_speed(-181, -30);
       }
       run_dir_speed_dis(-181, -60, 1.2, false);
       beam(1);
       beam(1);
       run_dir_speed_dis(-182, -50, 1, true);
-      UPDOWN.spinToPosition(55, degrees, false);
+      UPDOWN.spinToPosition(60, degrees, false);
       wait(0.2, seconds);
       arm.setVelocity(90, percent);
       arm.spinToPosition(540, degrees, false);//扣完第二个一层
-      wait(0.5, seconds);
+      wait(0.4, seconds);
       claw = 0;
       claw = 0;
       wait(0.2, seconds);
@@ -339,7 +334,7 @@ int autorun()
       UPDOWN.spinToPosition(250, degrees, true);
       beam(0);
       wait(0.2, seconds);
-      run_dir_speed_dis(-530, 70, 1.3, true);
+      run_dir_speed_dis(-530, 70, 1.6, true);
       turnto(-630);//做最后一个同色黄底加分区
       claw = 1;
       run_dir_speed_dis(-630, 70, 15, true);
@@ -349,9 +344,9 @@ int autorun()
       arm.spinToPosition(0, degrees, false);
       run_dir_speed_dis(-630, 40, 2, true);
       claw = 0;
-      run_dir_speed_dis(-480, 15, 4, false);
+      run_dir_speed_dis(-480, 10, 4, false);
       claw=1;
-      run_dir_speed_dis(-485, 50, 5.2, true);
+      run_dir_speed_dis(-485, 50, 5.9, true);
       claw=0;
       wait(0.1,seconds);
       move(-60,-60);
