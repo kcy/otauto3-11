@@ -1,6 +1,6 @@
 #include "vex.h"
-double kp=0.7,ki=0.001,kd=0.2,err,integ,deri,lasterr,pid;
-double tkp=0.75,tki=0.005,tkd=0.4,terr,tinteg,tderi,tlasterr,tpid;
+double kp=0.7,ki=0.002,kd=0.2,err,integ,deri,lasterr,pid;
+double tkp=0.75,tki=0.005,tkd=0.3,terr,tinteg,tderi,tlasterr,tpid;
 int upmini=2;
 int cha,chc;int armstate=1;
 int breakauto=0;
@@ -64,7 +64,7 @@ void turnto(int degree)
     {
       break;
     }
-    wait(10,msec);
+    wait(7,msec);
     terr=degree-BrainInertial.rotation(degrees);
     if (fabs(terr)>10||fabs(terr)<4)
     {
@@ -77,7 +77,7 @@ void turnto(int degree)
       if(fabs(terr)<4)
     {
       count+=1;
-      if (count>15)
+      if (count>20)
       {
         break;
       }

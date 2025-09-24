@@ -151,18 +151,18 @@ int autorun()
       }
       run_dir_speed_dis(87, -40, 1, true);//退一点
       turnto(165);
-      run_dir_speed_time(165, -70, 1, false);
+      run_dir_speed_time(165, -80, 0.9, false);
       run_dir_speed_time(165, 60, 0.2, false);
       run_dir_speed_time(165, -60, 0.3, false);
       Pneumatic1.retract(cylinder2);
       beam(1);
-      beam(1);
-      wait(0.2, seconds);
+      beam(1);//带走beam  
+      wait(0.3, seconds);
       BrainInertial.setRotation(0, degrees);
       run_dir_speed_dis(0, 80, 6, false);
       //run_dir_speed_time(0, 60, 0.8, true);//预装对位
       move(60,60);
-      wait(1.1,seconds);
+      wait(1,seconds);
       int predeg = BrainInertial.rotation(degrees);
       Brain.Screen.newLine();
       Brain.Screen.print("data %d",predeg);
@@ -194,7 +194,7 @@ int autorun()
       arm.setStopping(brake);
       claw = 1;
       wait(0.2,seconds);
-      run_dir_speed_dis(-90, 70, 8-9*sin(predeg*M_PI/180), true);
+      run_dir_speed_dis(-90, 70, 8-11*sin(predeg*M_PI/180), true);
       Brain.Screen.newLine();
       Brain.Screen.print("data %f",11.5*sin(predeg*M_PI/180));
       arm.spin(forward, 90, percent);
