@@ -3,6 +3,7 @@
 //
 //    Module:       main.cpp
 //    Author:       shen qiang Mr不着急
+// EN: "Mr不着急" is the author's nickname, roughly "Mr. No-Rush"
 //    Created:      {date}
 //    Description:  IQ project
 //
@@ -19,9 +20,12 @@
 
 
 //跑投距离
+// EN: Run-and-shoot distance (mm on the back distance sensor)
 int run_shootdis=470;
 //第111213包靠杆投和跑投后的半自动搜索fdown，根据fdcount次数去找可调节的函数
+// EN: For the semi-auto shots after game pieces 11, 12 and 13 (shooting against the bar and run-and-shoot): fdcount counts FDown presses; search for fdcount to find the tunable code
 //队号信息
+// EN: Team number
 char teamNumber[] = "86000A";
 
 
@@ -33,6 +37,7 @@ char teamNumber[] = "86000A";
 
 
 // PID 参数与自动程序入口
+// EN: PID settings and autonomous program entry points
 
 extern void set_heading_pid(double p, double i, double d);
 extern double tkp, tki, tkd;
@@ -52,16 +57,21 @@ void putL4();
 bool autoinjstate = false;
 int main() {
   // 配置底盘航向 PID 和转向 PID 参数
+  // EN: Configure the drivetrain heading PID and the turn PID
   // 直行航向 PID（用于 `run_dir_speed()` 的循迹修正）
+  // EN: Straight-driving heading PID (used by run_dir_speed() to hold a heading)
   // set_heading_pid(0.5, 0.003, 0.5);
   set_heading_pid(0.4, 0.01, 1);
   // 转向 PID（用于 `turnto()`）
+  // EN: Turn PID (used by turnto())
   tkp = 0.72;
   tki = 0.003;
   tkd = 0.9;
   // tkf = 0; // 前馈补偿，用于克服静摩擦并改善转向响应
+  // EN: Feedforward to overcome static friction and make turns respond faster
 
   // 设置电机制动方式，提升停位稳定性
+  // EN: Set motor brake mode so the robot holds position better when stopped
   arm.setBrake(brake);
   leftM.setBrake(brake);
   rightM.setBrake(brake);
@@ -71,6 +81,7 @@ int main() {
 
   Brain.playNote(6, 6, 300);
   // 惯导校准：校准期间不允许进入自动
+  // EN: Inertial sensor calibration: autonomous must not start while calibrating
   // BrainInertial.calibrate();
   // while (BrainInertial.isCalibrating()) {
   //   wait(1, msec);
@@ -78,6 +89,7 @@ int main() {
   BrainInertial.setRotation(0, degrees);
   Brain.playNote(6, 5, 300);
   // 机械结构初始化：先将机械臂和发射机构运行到基准位置
+  // EN: Mechanism init: drive the arm and the launcher to their home positions
   TouchLED.setColor(green);
   arm.spin(forward,100,percent);
   wait(0.2, sec);
@@ -99,11 +111,13 @@ int main() {
   wait(0.5, sec);
   arm.setPosition(0, degrees);
   // 启动自动程序、底盘控制和 L4 控制线程
+  // EN: Start the autonomous, chassis-control and L4-control threads
   vex::task autor(autorun);
   vex::task chasiss(chas);
   vex::task L4thre(L4thred);
   while (1) {
     // 主循环负责制动状态、自动触发和手动输入
+    // EN: The main loop handles brake mode, autonomous triggers and manual input
     if (arm.position(degrees) < 80) {
       arm.setBrake(brake);
     } else {
@@ -111,12 +125,14 @@ int main() {
     }
 
     // 由自动程序发出发射请求时执行一次发射动作
+    // EN: When the autonomous code requests a shot, fire once
     if (autoinjstate == true) {
       autoinj();
       autoinjstate = false;
     }
 
     // 自动模式下允许按摇杆 A 退出自动程序
+    // EN: In auto mode, pushing joystick axis A forward exits the autonomous program
     if (autostate == true) {
       TouchLED.setColor(blue);
       if (Controller.AxisA.position() > 50) {
@@ -128,7 +144,9 @@ int main() {
 
     if (autostate == false) {
       // 手动模式：处理自动启动、进气机构和发射控制
+      // EN: Manual mode: handle auto start, intake and launcher control
       if (TouchLED.pressing()) //自动及半自动准备
+      // EN: Prepare for autonomous / semi-autonomous
       {
         Brain.playNote(6, 5, 300);
         TouchLED.setColor(green);
@@ -182,6 +200,7 @@ int main() {
             inj.spin(forward,-100,percent);
             wait(0.3, sec);
             // 终止所有程序：停止后台任务和所有运动部件
+            // EN: Stop everything: background tasks and all moving parts
             Brain.programStop();
             return 0;
           }
@@ -190,13 +209,16 @@ int main() {
       }
       if ((Controller.ButtonFDown.pressing()
            /* 半自动发射，把自和前后注释符删掉即可启动 ||
+           // EN: Semi-auto launch: delete this text and the surrounding comment markers to enable it
               (Controller.AxisA.position() < -80 &&
                backdis.objectDistance(mm) < 25) */) &&
           L4 > 1 && arm.position(degrees) > 200) {
         // FDown：靠距离传感器选择近距离或远距离发射路径
+        // EN: FDown: use the back distance sensor to choose the close-range or long-range shot
         fdcount++;
         if (backdis.objectDistance(mm) < run_shootdis+10) {
           // 靠杆发射
+          // EN: Shoot against the bar (close range)
           ctchas = true;
           move(-92, -100);
           while (backdis.objectDistance(mm) > 65) {
@@ -232,6 +254,7 @@ int main() {
           ctchas = false;
         } else {
           // 远距离发射
+          // EN: Long-range shot
           ctchas = true;
           move(-100, -100);
           while (backdis.objectDistance(mm) > run_shootdis) {
@@ -263,9 +286,12 @@ int main() {
       }
       if ((Controller.ButtonFUp.pressing()
       /*半自动发射，把自和前后注释符删掉即可启动||(Controller.AxisA.position()<-80&&backdis.objectDistance(mm)<25)*/)
+      // EN: Semi-auto launch: delete this text and the surrounding comment markers to enable it
       &&L4>1&&arm.position(degrees)>200) //控制发射
+      // EN: Launch control
       {
         //常规弹射
+        // EN: Regular launch
         if(backdis.objectDistance(mm)<run_shootdis+10)
         {
           ctchas=true;
@@ -295,6 +321,7 @@ int main() {
           }
         }
         else //远投
+        // EN: Long shot
         {
           ctchas=true;
           move(-86,-100);
@@ -336,13 +363,17 @@ int main() {
   }
 }
 // L4 机构控制线程：处理手动升降和自动模式切换
+// EN: L4 mechanism thread: handles manual arm raise/lower (it also draws the screen)
 int L4thred() {
   while (1) {
     wait(30, msec);
     //显示所有信息
+    // EN: Show all info
     Brain.Screen.setCursor(1, 1); // 设置光标位置
+    // EN: Set the cursor position
     
     Brain.Screen.clearScreen();//循环清屏
+    // EN: Clear the screen every loop
     Brain.Screen.setPenColor(purple);
     Brain.Screen.drawLine(0, 0, 159, 0);
     Brain.Screen.drawLine(0, 21, 159, 21);
@@ -370,6 +401,7 @@ int L4thred() {
     Brain.Screen.printAt(103, 100, "%4d", run_shootdis);
   
     //显示所有信息
+    // EN: Show all info (end)
     if (autostate == false) {
       if (Controller.ButtonRUp.pressing()) {
         TouchLED.setColor(red);
@@ -414,11 +446,13 @@ int L4thred() {
   }
 }
 // 自动程序线程：根据启动方式执行半自动或全自动流程
+// EN: Autonomous thread: runs the semi-auto or full-auto routine depending on how it is started
 int autorun() {
   while (1) {
     if (autostate == true && Controller.ButtonFUp.pressing()) {
       autoqualification();
       // 半自动程序入口
+      // EN: Semi-auto program entry
       // L4 = 3;
       TouchLED.setColor(red);
       autostate = false;
@@ -426,6 +460,7 @@ int autorun() {
     } else if (autostate == true &&
                (TouchLED.pressing() || Controller.ButtonEDown.pressing())) {
       // 全自动程序入口
+      // EN: Full-auto program entry
       autoskill();
       autostate = false;
       break;
@@ -436,6 +471,7 @@ int autorun() {
   return 0;
 }
 // 底盘控制线程：手动模式下读取摇杆，自动发射时暂停驾驶输出
+// EN: Chassis thread: reads the joysticks in manual mode; pauses driver output during automatic shots
 int chas() {
   while (1) {
     if (autostate == false) {
@@ -465,6 +501,7 @@ int chas() {
     } 
     else {
       // 自动模式下，摇杆大幅推动时立即停止自动程序
+      // EN: In auto mode, pushing the joystick hard stops the autonomous program immediately
       if (Controller.AxisA.position() > 90 ||
           Controller.AxisA.position() < -90) 
       {
@@ -482,6 +519,7 @@ int chas() {
 }
 void autoqualification() {
   // 资格赛流程：初始化机构后依次处理场上的目标
+  // EN: Qualification routine: initialize the mechanisms, then handle the field targets in order
   set_heading_pid(0.4, 0.01, 1);
   leftM.setBrake(brake);
   rightM.setBrake(brake);
@@ -503,6 +541,7 @@ void autoqualification() {
   rightM.spinToPosition(-73, degrees, true);
 
   // 转向并收集地上的第一个目标
+  // EN: Turn and collect the first target on the floor
   intake.spin(forward, 100, percent);
   run_dir_speed_dis(3, 40, 3.5, true);
   wait(0.3, seconds);
@@ -555,6 +594,7 @@ void autoqualification() {
   rightM.stop(hold);
   wait(0.1, seconds);
   //turnto(30);//转向第二个黄包
+  // EN: Turn toward the second yellow game piece
   run_dir_speed_dis(28,60,10,true);
   wait(0.3,seconds);
   rightM.setPosition(0,degrees);
@@ -604,6 +644,7 @@ void autoqualification() {
   leftM.stop(hold);
   /*
   // 这里写联赛自动程序
+  // EN: Write the league autonomous program here
   /**/ 
   TouchLED.setColor(red);
   wait(0.1, seconds);
@@ -611,9 +652,12 @@ void autoqualification() {
   rightM.setBrake(brake);
 }
 // 技能赛自动程序
+// EN: Skills autonomous program
 void autoskill() {
   // 起始动作：完成第一组机构操作并移动到发射位置
+  // EN: Opening: do the first set of mechanism actions and move to the launch position
   // set_heading_pid(0.3, 0.001, 0.7); // 后退 PID
+  // EN: Reversing PID
   autoqualification();
   // wait(0.3, seconds);
   run_dir_speed_dis(-117,75,14.5,true);
@@ -681,6 +725,7 @@ void autoskill() {
   run_dir_speed_dis(-51, 85, 13, false);
 
   // 移动到蓝色目标区域并完成连续发射
+  // EN: Move to the blue target area and fire repeatedly
   run_dir_speed_dis(-70, -70, 8.5, false);
   move(-95, -86);
   wait(1.4, seconds);
@@ -689,6 +734,7 @@ void autoskill() {
   wait(0.20, seconds);
   set_heading_pid(0.4, 0.00, 0.8);
   //开始打4个蓝
+  // EN: Start scoring the 4 blue pieces
   run_dir_speed_dis(-95, 85, 14, false);
   run_dir_speed_dis(-45, 42, 8.6, false);
   run_dir_speed_time(-88, 60, 1.65, false);
@@ -696,8 +742,10 @@ void autoskill() {
   //BrainInertial.setRotation(-90, degrees);
  
   // 拿到第一个蓝
+  // EN: Got the first blue piece
   
   // 往返收集剩余目标
+  // EN: Shuttle back and forth to collect the remaining targets
   for (int i = 0; i < 3; i++) {
     set_heading_pid(0.4, 0.002, 0.8);
     run_dir_speed_dis(-196, -45, 10, false);
@@ -732,8 +780,10 @@ void autoskill() {
   intake.stop();
 }
 // 资格赛自动程序
+// EN: Qualification autonomous program (stray label: the routine is autoqualification() above)
 
 // 执行一次发射机构往复动作
+// EN: Run the launcher through one back-and-forth cycle
 void autoinj() {
   inj.spin(forward, -100, percent);
   wait(0.3, sec);
@@ -745,6 +795,7 @@ void autoinj() {
   inj.stop();
 }
 // 将机械臂抬到 L4 放置位置，并等待机构稳定
+// EN: Raise the arm to the L4 placing position and wait for it to settle
 void putL4() {
   arm.spin(forward, 100, percent);
   while (arm.position(degrees) < 150) {
