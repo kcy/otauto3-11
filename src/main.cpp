@@ -22,7 +22,7 @@
 int run_shootdis=470;
 //第111213包靠杆投和跑投后的半自动搜索fdown，根据fdcount次数去找可调节的函数
 //队号信息
-char teamNumber[] = "5333X";
+char teamNumber[] = "86000A";
 
 
 
