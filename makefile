@@ -13,7 +13,7 @@ SRC_C += $(wildcard src/*/*.cpp)
 SRC_C += $(wildcard src/*/*.c)
 
 OBJ = $(addprefix $(BUILD)/, $(addsuffix .o, $(basename $(SRC_C))) )
-
+OBJ +=$(wildcard ./obj/*.o)
 # location of include files that c and cpp files depend on
 SRC_H  = $(wildcard include/*.h)
 

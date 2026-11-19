@@ -1,2 +1,1 @@
-# vscode_auto_213
-2025赛季vscode版本自动
+# levelup联赛半自动及自动赛

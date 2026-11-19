@@ -1,21 +1,16 @@
 #include "vex.h"
+
 // Robot configuration code.
 brain Brain;
 inertial BrainInertial = inertial();
-motor UPDOWNMotorA = motor(PORT5, false);
-motor UPDOWNMotorB = motor(PORT11, true);
-motor_group UPDOWN = motor_group(UPDOWNMotorA, UPDOWNMotorB);
-
-controller Controller = controller();
-motor armMotorA = motor(PORT4, false);
-motor armMotorB = motor(PORT10, true);
-motor_group arm = motor_group(armMotorA, armMotorB);
-
-pneumatic Pneumatic1 = pneumatic(PORT1);
-motor leftM = motor(PORT6, true);
+motor injL = motor(PORT8, false);
+motor injR = motor(PORT11, true);
+motor_group inj = motor_group(injL, injR);
+motor leftM = motor(PORT7, true);
 motor rightM = motor(PORT12, false);
-distance leftdistance = distance(PORT2);
-distance rightdistance = distance(PORT3);
-touchled TouchLED7 = touchled(PORT7);
-pneumatic Pneumatic8 = pneumatic(PORT8);
-optical Optical9 = optical(PORT9);
+motor arm = motor(PORT6, false);
+motor intake = motor(PORT1, false);
+distance frontdis = distance(PORT9);
+distance backdis = distance(PORT2);
+touchled TouchLED = touchled(PORT10);
+controller Controller = controller();
