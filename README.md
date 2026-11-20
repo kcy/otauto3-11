@@ -18,7 +18,7 @@ Code comments are in Chinese, with English translations on the line below each o
 ## Building and downloading
 
 1. Install VS Code with the **VEX Robotics** extension.
-2. Open this folder. The extension reads [.vscode/vex_project_settings.json](.vscode/vex_project_settings.json): platform **IQ2**, language C++, project name `st_2rd`.
+2. Open this folder. The extension reads [.vscode/vex_project_settings.json](.vscode/vex_project_settings.json): platform **IQ2**, language C++, project name `86000A`.
 3. Connect the brain or controller over USB, then use **Build** / **Download** in the VEX extension. The program goes to **slot 2**.
 
 Build output goes to `build/`, which git ignores.
@@ -29,17 +29,19 @@ Defined in [src/config.cpp](src/config.cpp):
 
 | Device | Name in code | Port | Reversed |
 |---|---|---|---|
+| Arm | `arm` | 1 | no |
+| Touch LED | `TouchLED` | 2 | — |
+| Front distance sensor | `frontdis` | 4 | — |
+| Back distance sensor | `backdis` | 5 | — |
+| Intake / conveyor | `intake` | 6 | no |
 | Left drive motor | `leftM` | 7 | yes |
-| Right drive motor | `rightM` | 12 | no |
 | Launcher motor (left) | `injL` | 8 | no |
-| Launcher motor (right) | `injR` | 11 | yes |
+| Right drive motor | `rightM` | 10 | no |
+| Launcher motor (right) | `injR` | 12 | yes |
 | Launcher group | `inj` | `injL` + `injR` | — |
-| Arm | `arm` | 6 | no |
-| Intake | `intake` | 1 | no |
-| Front distance sensor | `frontdis` | 9 | — |
-| Back distance sensor | `backdis` | 2 | — |
-| Touch LED | `TouchLED` | 10 | — |
 | Inertial sensor | `BrainInertial` | built into the brain | — |
+
+Ports 3, 9 and 11 are free.
 
 Drivetrain: 2.5 in wheels, 1:2 motor-to-wheel gearing. Distances in the motion functions are in inches (`IN2M_DEG = 22.5` motor degrees per inch, tuned by hand).
 
@@ -48,7 +50,7 @@ Drivetrain: 2.5 in wheels, 1:2 motor-to-wheel gearing. Distances in the motion f
 When the program starts, the brain:
 
 1. Sets the heading to 0. Inertial calibration is commented out in `main()`, so keep the robot still and square at startup.
-2. Homes the mechanisms. The arm and launcher run until they stall, then the arm encoder is zeroed.
+2. Homes the mechanisms. The arm and launcher run until they stall (or for at most 2 seconds each, so a disconnected or miswired motor can't freeze startup), then the arm encoder is zeroed.
 3. Starts three background tasks: `autorun` (waits for an auto routine to be triggered), `chas` (joystick driving) and `L4thred` (arm buttons and screen display).
 
 The brain screen shows the team number, the heading, both distance sensor readings and the current `run_shootdis`.

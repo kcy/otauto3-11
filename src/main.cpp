@@ -96,14 +96,17 @@ int main() {
   arm.stop();
   inj.spin(forward,100,percent);
   wait(0.3, sec);
-  while(inj.velocity(rpm)>3)
+  // Timeout so a mechanism that never stalls can't freeze startup
+  Brain.Timer.reset();
+  while(inj.velocity(rpm)>3 && Brain.Timer.value() < 2.0)
   {
     wait(10, msec);
   }
   inj.stop();
   arm.spin(forward,-100,percent);
   wait(0.2, sec);
-  while(arm.velocity(rpm)<-2)
+  Brain.Timer.reset();
+  while(arm.velocity(rpm)<-2 && Brain.Timer.value() < 2.0)
   {
     wait(10, msec);
   }
