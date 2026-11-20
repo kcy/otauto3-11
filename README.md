@@ -18,7 +18,7 @@ Code comments are in Chinese, with English translations on the line below each o
 ## Building and downloading
 
 1. Install VS Code with the **VEX Robotics** extension.
-2. Open this folder. The extension reads [.vscode/vex_project_settings.json](.vscode/vex_project_settings.json): platform **IQ2**, language C++, project name `86000A`.
+2. Open this folder. The extension reads [.vscode/vex_project_settings.json](.vscode/vex_project_settings.json): platform **IQ2**, language C++, project name `simple-86000A`.
 3. Connect the brain or controller over USB, then use **Build** / **Download** in the VEX extension. The program goes to **slot 2**.
 
 Build output goes to `build/`, which git ignores.
