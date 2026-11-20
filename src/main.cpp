@@ -55,6 +55,16 @@ void autoqualification();
 void autoinj();
 void putL4();
 bool autoinjstate = false;
+
+// Starter Mode: simple driver controls with no automation (see README).
+// Chosen on the brain screen at startup; Automation Mode is the original code.
+bool starterMode = true;
+void selectMode();
+void starterButtons();
+void starterArmButtons();
+void cockCatapult();
+void lowerArm(double stopRpm);
+void stopEverything();
 int main() {
   // 配置底盘航向 PID 和转向 PID 参数
   // EN: Configure the drivetrain heading PID and the turn PID
@@ -87,6 +97,8 @@ int main() {
   //   wait(1, msec);
   // }
   BrainInertial.setRotation(0, degrees);
+  // Pick Starter or Automation before anything moves
+  selectMode();
   Brain.playNote(6, 5, 300);
   // 机械结构初始化：先将机械臂和发射机构运行到基准位置
   // EN: Mechanism init: drive the arm and the launcher to their home positions
@@ -115,6 +127,7 @@ int main() {
   arm.setPosition(0, degrees);
   // 启动自动程序、底盘控制和 L4 控制线程
   // EN: Start the autonomous, chassis-control and L4-control threads
+  // autorun only acts once autostate is true, which Starter Mode never sets
   vex::task autor(autorun);
   vex::task chasiss(chas);
   vex::task L4thre(L4thred);
@@ -125,6 +138,12 @@ int main() {
       arm.setBrake(brake);
     } else {
       arm.setBrake(hold);
+    }
+
+    if (starterMode) {
+      starterButtons();
+      wait(10, msec);
+      continue;
     }
 
     // 由自动程序发出发射请求时执行一次发射动作
@@ -400,12 +419,21 @@ int L4thred() {
     Brain.Screen.printAt(20, 79, "Backdis");
     Brain.Screen.printAt(103, 79, "%4.0f", backdis.objectDistance(mm));
     Brain.Screen.setPenColor(white);
-    Brain.Screen.printAt(16, 100, "Shootdis");
-    Brain.Screen.printAt(103, 100, "%4d", run_shootdis);
-  
+    if (starterMode) {
+      Brain.Screen.printAt(28, 100, "Mode");
+      Brain.Screen.setPenColor(green);
+      Brain.Screen.printAt(88, 100, "Starter");
+      Brain.Screen.setPenColor(white);
+    } else {
+      Brain.Screen.printAt(16, 100, "Shootdis");
+      Brain.Screen.printAt(103, 100, "%4d", run_shootdis);
+    }
+
     //显示所有信息
     // EN: Show all info (end)
-    if (autostate == false) {
+    if (starterMode) {
+      starterArmButtons();
+    } else if (autostate == false) {
       if (Controller.ButtonRUp.pressing()) {
         TouchLED.setColor(red);
         autostate = false;
@@ -491,10 +519,11 @@ int chas() {
         } else {
           chc = 0;
         }
-        if (cha > 70 && BrainInertial.rotation(degrees) > -105 &&
+        // Steering assist for the wall run (Automation Mode only)
+        if (!starterMode && cha > 70 && BrainInertial.rotation(degrees) > -105 &&
             BrainInertial.rotation(degrees) < -75) {
           move(cha + 0.5 * chc - 13, cha - 0.5 * chc);
-        } else if (cha < -70 && BrainInertial.rotation(degrees) > -105 &&
+        } else if (!starterMode && cha < -70 && BrainInertial.rotation(degrees) > -105 &&
                    BrainInertial.rotation(degrees) < -75) {
           move(cha + 0.5 * chc +13, cha - 0.5 * chc);
         } else {
@@ -808,4 +837,156 @@ void putL4() {
     wait(10, msec);
   }
   wait(100, msec);
+}
+// ---------------------------------------------------------------------------
+// Starter Mode
+// ---------------------------------------------------------------------------
+
+// Startup menu on the brain screen. Left/Up arrow = Starter, Right/Down
+// arrow = Automation, Check = confirm. With no input for 3 seconds it starts
+// in Starter, so nobody ends up in Automation by accident.
+void selectMode() {
+  starterMode = true;
+  uint32_t deadline = timer::system() + 3000;
+  while (timer::system() < deadline) {
+    if (Brain.buttonLeft.pressing()) {
+      starterMode = true;
+      deadline = timer::system() + 3000;
+    } else if (Brain.buttonRight.pressing()) {
+      starterMode = false;
+      deadline = timer::system() + 3000;
+    } else if (Brain.buttonCheck.pressing()) {
+      while (Brain.buttonCheck.pressing()) {
+        wait(10, msec);
+      }
+      break;
+    }
+
+    int secondsLeft = (deadline - timer::system() + 999) / 1000;
+    Brain.Screen.clearScreen();
+    Brain.Screen.setFont(mono15);
+    Brain.Screen.setPenColor(orange);
+    Brain.Screen.printAt(10, 18, "Pick a mode:");
+    Brain.Screen.setPenColor(starterMode ? green : white);
+    Brain.Screen.printAt(10, 42, starterMode ? "> Starter" : "  Starter");
+    Brain.Screen.setPenColor(starterMode ? white : green);
+    Brain.Screen.printAt(10, 62, starterMode ? "  Automation" : "> Automation");
+    Brain.Screen.setPenColor(white);
+    Brain.Screen.printAt(10, 90, "Arrows, Check=OK");
+    Brain.Screen.printAt(10, 106, "Starting in %d", secondsLeft);
+    wait(50, msec);
+  }
+  Brain.Screen.clearScreen();
+}
+
+// Main-loop buttons in Starter Mode: conveyor, catapult and the stop buttons.
+// Each action finishes before the next button is read (same as Automation).
+void starterButtons() {
+  // L Up: conveyor forward (starts when the button is released)
+  // L Down: conveyor in reverse while held
+  if (Controller.ButtonLUp.pressing()) {
+    while (Controller.ButtonLUp.pressing()) {
+      wait(10, msec);
+    }
+    intake.spin(forward, 100, percent);
+  } else if (Controller.ButtonLDown.pressing()) {
+    while (Controller.ButtonLDown.pressing()) {
+      intake.spin(reverse, 100, percent);
+      wait(10, msec);
+    }
+    intake.stop();
+  }
+
+  // E Up or E Down held for 0.5 s: stop everything
+  if (Controller.ButtonEUp.pressing() || Controller.ButtonEDown.pressing()) {
+    uint32_t start = timer::system();
+    while (Controller.ButtonEUp.pressing() ||
+           Controller.ButtonEDown.pressing()) {
+      if (timer::system() - start >= 500) {
+        stopEverything();
+      }
+      wait(10, msec);
+    }
+  }
+
+  // F Up: fire, then re-arm. Only when the arm is high enough to be clear
+  // of the catapult (above 200 degrees); otherwise beep and do nothing.
+  if (Controller.ButtonFUp.pressing()) {
+    if (arm.position(degrees) > 200) {
+      autoinj();
+    } else {
+      Brain.playNote(3, 1, 300);
+    }
+    while (Controller.ButtonFUp.pressing()) {
+      wait(10, msec);
+    }
+  }
+
+  // F Down: cock the catapult
+  if (Controller.ButtonFDown.pressing()) {
+    cockCatapult();
+    while (Controller.ButtonFDown.pressing()) {
+      wait(10, msec);
+    }
+  }
+}
+
+// Arm buttons in Starter Mode (called from the L4thred task).
+void starterArmButtons() {
+  if (Controller.ButtonRUp.pressing()) {
+    // Tap: arm up to the top level, then straight back down.
+    // Hold 0.5 s: arm to 270 degrees and hold there (safe to fire).
+    uint32_t start = timer::system();
+    bool held = false;
+    while (Controller.ButtonRUp.pressing()) {
+      if (!held && timer::system() - start >= 500) {
+        held = true;
+        arm.setVelocity(100, percent);
+        arm.spinToPosition(270, degrees, false);
+      }
+      wait(10, msec);
+    }
+    if (!held) {
+      putL4();
+      lowerArm(3);
+    }
+  } else if (Controller.ButtonRDown.pressing()) {
+    // R Down: arm all the way down
+    while (Controller.ButtonRDown.pressing()) {
+      wait(10, msec);
+    }
+    lowerArm(8);
+  }
+}
+
+// Pull the catapult back until it stalls against its stop (max 2 s).
+void cockCatapult() {
+  inj.spin(forward, 100, percent);
+  wait(0.3, sec);
+  uint32_t start = timer::system();
+  while (inj.velocity(rpm) > 3 && timer::system() - start < 2000) {
+    wait(10, msec);
+  }
+  inj.stop();
+}
+
+// Drive the arm down until it stalls at the bottom (max 2 s).
+void lowerArm(double stopRpm) {
+  arm.spin(forward, -100, percent);
+  wait(400, msec);
+  uint32_t start = timer::system();
+  while (fabs(arm.velocity(rpm)) > stopRpm && timer::system() - start < 2000) {
+    wait(10, msec);
+  }
+  arm.setVelocity(0, percent);
+}
+
+// Stop all motors and end the program.
+void stopEverything() {
+  leftM.stop();
+  rightM.stop();
+  intake.stop();
+  inj.stop();
+  arm.stop();
+  Brain.programStop();
 }

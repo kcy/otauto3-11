@@ -50,12 +50,33 @@ Drivetrain: 2.5 in wheels, 1:2 motor-to-wheel gearing. Distances in the motion f
 When the program starts, the brain:
 
 1. Sets the heading to 0. Inertial calibration is commented out in `main()`, so keep the robot still and square at startup.
-2. Homes the mechanisms. The arm and launcher run until they stall (or for at most 2 seconds each, so a disconnected or miswired motor can't freeze startup), then the arm encoder is zeroed.
-3. Starts three background tasks: `autorun` (waits for an auto routine to be triggered), `chas` (joystick driving) and `L4thred` (arm buttons and screen display).
+2. Shows a **mode menu**: pick **Starter** or **Automation** with the brain's arrow buttons and confirm with Check. With no input for 3 seconds it starts in Starter.
+3. Homes the mechanisms. The arm and launcher run until they stall (or for at most 2 seconds each, so a disconnected or miswired motor can't freeze startup), then the arm encoder is zeroed.
+4. Starts three background tasks: `autorun` (waits for an auto routine to be triggered), `chas` (joystick driving) and `L4thred` (arm buttons and screen display).
 
-The brain screen shows the team number, the heading, both distance sensor readings and the current `run_shootdis`.
+The brain screen shows the team number, the heading, both distance sensor readings and the current `run_shootdis` (in Starter Mode, the last row shows the mode instead).
 
 ## Controls
+
+There are two modes, chosen at startup.
+
+### Starter Mode
+
+Simple driver controls with no automation: no autonomous routines, no distance-sensor driving and no steering assist.
+
+| Input | Action |
+|---|---|
+| Joysticks | Arcade drive (Axis A forward/back, Axis C turn) |
+| L Up (press and release) | Conveyor on, forward |
+| L Down (hold) | Conveyor in reverse; stops on release |
+| R Up (tap) | Arm up to the top level, then back down |
+| R Up (hold 0.5 s) | Arm to 270° and hold there, the safe height for firing |
+| R Down | Arm all the way down |
+| F Up | Fire, then re-arm. Only works when the arm is above 200°; otherwise the brain beeps |
+| F Down | Cock the catapult |
+| E Up or E Down (hold 0.5 s) | Stop all motors and end the program |
+
+The rest of this section describes **Automation Mode**, which is the original competition code.
 
 ### Driving (manual mode)
 
