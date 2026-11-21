@@ -69,9 +69,9 @@ Simple driver controls with no automation: no autonomous routines, no distance-s
 | Joysticks | Arcade drive (Axis A forward/back, Axis C turn) |
 | L Up (press and release) | Conveyor on, forward |
 | L Down (hold) | Conveyor in reverse; stops on release |
-| R Up (tap) | Arm up to the top level, then back down |
-| R Up (hold 0.5 s) | Arm to 270° and hold there, the safe height for firing |
-| R Down | Arm all the way down |
+| R Up | Arm up to L4 (the top) and stay there |
+| R Down (tap) | Arm all the way down |
+| R Down (hold 0.5 s) | Arm to 270°, the safe height for firing (from above or below) |
 | F Up | Fire, then re-arm. Only works when the arm is above 200°; otherwise the brain beeps |
 | F Down | Cock the catapult |
 | E Up or E Down (hold 0.5 s) | Stop all motors and end the program |

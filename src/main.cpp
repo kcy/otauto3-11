@@ -847,6 +847,13 @@ void putL4() {
 // in Starter, so nobody ends up in Automation by accident.
 void selectMode() {
   starterMode = true;
+  // The program is started by pressing Check, so it may still be held when
+  // we get here. Wait for every brain button to be released first, or that
+  // press would count as "confirm" and skip the menu.
+  while (Brain.buttonCheck.pressing() || Brain.buttonLeft.pressing() ||
+         Brain.buttonRight.pressing()) {
+    wait(10, msec);
+  }
   uint32_t deadline = timer::system() + 3000;
   while (timer::system() < deadline) {
     if (Brain.buttonLeft.pressing()) {
@@ -934,11 +941,18 @@ void starterButtons() {
 // Arm buttons in Starter Mode (called from the L4thred task).
 void starterArmButtons() {
   if (Controller.ButtonRUp.pressing()) {
-    // Tap: arm up to the top level, then straight back down.
-    // Hold 0.5 s: arm to 270 degrees and hold there (safe to fire).
+    // R Up: arm up to L4 (the top) and stay there
+    while (Controller.ButtonRUp.pressing()) {
+      wait(10, msec);
+    }
+    putL4();
+    arm.stop(hold);
+  } else if (Controller.ButtonRDown.pressing()) {
+    // R Down tap: arm all the way down.
+    // R Down hold 0.5 s: arm to 270 degrees (safe to fire), from above or below.
     uint32_t start = timer::system();
     bool held = false;
-    while (Controller.ButtonRUp.pressing()) {
+    while (Controller.ButtonRDown.pressing()) {
       if (!held && timer::system() - start >= 500) {
         held = true;
         arm.setVelocity(100, percent);
@@ -947,15 +961,8 @@ void starterArmButtons() {
       wait(10, msec);
     }
     if (!held) {
-      putL4();
-      lowerArm(3);
+      lowerArm(8);
     }
-  } else if (Controller.ButtonRDown.pressing()) {
-    // R Down: arm all the way down
-    while (Controller.ButtonRDown.pressing()) {
-      wait(10, msec);
-    }
-    lowerArm(8);
   }
 }
 
